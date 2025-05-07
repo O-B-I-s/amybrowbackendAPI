@@ -1,0 +1,6 @@
+@amybrowbackendAPI_HostAddress = http://localhost:5117
+
+GET {{amybrowbackendAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
