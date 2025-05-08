@@ -1,4 +1,5 @@
-﻿using amybrowbackendAPI.Models;
+﻿using amybrowbackendAPI.DTOs;
+using amybrowbackendAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace amybrowbackendAPI.Data
@@ -10,5 +11,6 @@ namespace amybrowbackendAPI.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<ServiceDescription> ServiceDescriptions { get; set; }
         public DbSet<GalleryItem> GalleryItems { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

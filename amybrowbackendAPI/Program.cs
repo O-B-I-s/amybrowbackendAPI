@@ -1,6 +1,10 @@
 using amybrowbackendAPI.Data;
+using amybrowbackendAPI.DTOs;
 using amybrowbackendAPI.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +39,53 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSwaggerGen();
 
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwt = builder.Configuration.GetSection("JwtSettings");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwt["Issuer"],
+            ValidAudience = jwt["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]))
+        };
+    });
+
+
+
 var app = builder.Build();
+
+
+
+
+// Seed default user
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    var existingUser = await db.Users.FirstOrDefaultAsync(u => u.Email == "Amaratamaechi@gmail.com");
+    if (existingUser == null)
+    {
+        var user = new User
+        {
+            Email = "Amaratamaechi@gmail.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Amaratamaechi@gmail.com")
+        };
+
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        Console.WriteLine("Default admin user created.");
+    }
+}
+
+
+
+
 
 
 // Use the CORS policy
@@ -55,7 +105,7 @@ app.UseHttpsRedirection();
 //    c.SwaggerEndpoint("/openapi/v1.json", "My API V1")
 
 //);
-
+app.UseAuthorization();
 app.UseAuthorization();
 app.UseStaticFiles();
 
